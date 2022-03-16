@@ -1,3 +1,9 @@
+# Custom
+/build/*
+/build-x86_64/*
+/data/*
+/.vscode/*
+
 # Binaries for programs and plugins
 *.exe
 *.exe~
@@ -13,3 +19,36 @@
 
 # Dependency directories (remove the comment below to include it)
 # vendor/
+
+# Prerequisites
+*.d
+
+# Compiled Object files
+*.slo
+*.lo
+*.o
+*.obj
+
+# Precompiled Headers
+*.gch
+*.pch
+
+# Compiled Dynamic libraries
+*.so
+*.dylib
+*.dll
+
+# Fortran module files
+*.mod
+*.smod
+
+# Compiled Static libraries
+*.lai
+*.la
+*.a
+*.lib
+
+# Executables
+*.exe
+*.out
+*.app
