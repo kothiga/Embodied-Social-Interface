@@ -1,0 +1,353 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.0/css/bootstrap.min.css">
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.0/js/bootstrap.min.js"></script>
+    <title>Artificial Life: Embodied Intelligence (SYDE 750)</title>
+    <style>
+        .checkbox-custom,
+        .radio-custom {
+            opacity: 0;
+            position: absolute;
+        }
+
+        .checkbox-custom,
+        .checkbox-custom-label,
+        .radio-custom,
+        .radio-custom-label {
+            display: inline-block;
+            vertical-align: middle;
+            margin: 5px;
+            cursor: pointer;
+        }
+
+        .checkbox-custom-label,
+        .radio-custom-label {
+            position: relative;
+        }
+
+        .checkbox-custom+.checkbox-custom-label:before,
+        .radio-custom+.radio-custom-label:before {
+            content: '';
+            background: #fff;
+            border: 2px solid #000;
+            display: inline-block;
+            vertical-align: middle;
+            width: 20px;
+            height: 20px;
+            /*padding: 2px;*/
+            margin-right: 10px;
+            text-align: center;
+        }
+
+        .checkbox-custom:checked+.checkbox-custom-label:before {
+            background: rebeccapurple;
+            /*box-shadow: inset 0px 0px 0px 4px #fff;*/
+        }
+
+        .radio-custom+.radio-custom-label:before {
+            border-radius: 50%;
+        }
+
+        .radio-custom:checked+.radio-custom-label:before {
+            background: #000;
+            /*box-shadow: inset 0px 0px 0px 4px #fff;*/
+        }
+
+
+        .checkbox-custom:focus+.checkbox-custom-label,
+        .radio-custom:focus+.radio-custom-label {
+            /*outline: 1px solid #ddd; !* focus style *!*/
+        }
+    </style>
+</head>
+
+<body style="background-color: rebeccapurple" onload="init(); roll()">
+    <div class="container" style="background-color: #ffffff; min-height: 100vh">
+        <div class="col-lg-2 col-md-2" style="height: 20px;"></div>
+        <table style="width:100%; text-align:right">
+            <tr>
+                <td><img src="./logo/waterloo.png" height="40"></td>
+            </tr>
+        </table>
+        <div class="row">
+            <div class="col-lg-2 col-md-2"></div>
+            <div class="col-lg-8 col-md-8" style="text-align: center;">
+                <h3>Information Form</h3>
+            </div>
+            <div class="col-lg-2 col-md-2"></div>
+        </div>
+        <div class="row" style="font-family:'Times New Roman', Times, serif">
+            <div class="col-lg-2 col-md-2"></div>
+            <div class="col-lg-8 col-md-8">
+                <h3
+                    style="font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; text-align: center; margin-bottom: 50px;">
+                    <b>Embodied Social Mechanisms for<br>Improved Human-Robot Interaction </b>
+                </h3>
+                <h4 style="text-align: center;margin-left: 20px;margin-right: 20px;">
+                    <b>Austin Kothig</b>
+                    <br>Department of Systems Design Engineering,
+                    <br>University of Waterloo, Canada
+
+                </h4>
+                <h4
+                    style="text-align: justify;margin-left: 20px;font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;margin-top: 20px;">
+                    <b>Overview:</b>
+                </h4>
+                <h4 style="text-align: justify;margin-left: 20px;margin-right: 20px;margin-bottom: 20px;">
+                    The following is an individual project developed for the course "Artificial Life: Embodied Intelligence" 
+                    (ECE 750/SYDE 750) and has been created for training research skills. This project focuses on the ideas 
+                    of social embodiment and communication. In this user study, you will be playing a puzzle game inspired by 
+                    the Tower of Hanoi. A simulated version of the humanoid robotics platform, iCub, will provide hints during 
+                    the game. You can choose to pay attention to the robot or make move decisions based on what you think is best. 
+                    At the end of the game, a brief questionnaire will be presented to gather your impressions of the scenario.
+                    <br><b>Note: This project has not been reviewed or received ethics clearance. 
+                    None of the data collected during this early work, game scenario will be used in any form for publication.</b>
+                </h4>
+                <h4 style="text-align: justify;font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;">
+                    <b>I. Your responsibilities as a participant</b>
+                </h4>
+                <h4 style="text-align: justify">
+                    Participation in this study will approximately take 25-30 minutes. Your answer to the questions will
+                    be logged. This does not require you to download anything onto your computer. We ask you not to
+                    switch to other tasks when working on this HIT. If you switch to another window, the videos will be
+                    automatically paused </h4>
+                <h4 style="text-align: justify; border-style: solid; padding: 20px; border-width: 2px;">
+                    <p><b>Procedure:</b></p>
+                    <p>The study will start after you give consent by checking the box and pressing the button at the
+                        end of this page.</p>
+
+                    <p>First, we will ask you to complete a short questionnaire about your demographic information (Only
+                        your gender, age, educational level, and culture). You may choose not to answer certain
+                        questions in the demographic information form. Then, a few things about your personality will be questioned, as well as a few other
+                        questions about yourself.</p>
+
+                    <p>In the next step, to make you familiar with the context, we will show you a short video about
+                        teaching robots in the real-world. Then, you will learn to use our designed interface to teach a
+                        robot simple cooking tasks, by clicking on the items you would like it to add to your meal, for
+                        example, a salad.</p>
+
+                    <p>For the main part of this study, you will be asked to show the robots how you prefer having some
+                        food. Immediately after the instruction, you will watch one of the robots practising the task
+                        through a video. There will be a total of 12 teaching rounds in the experiment. You will teach 2
+                        different robots. After each round, which would take about 30-40 seconds, we will ask a few
+                        questions about your opinions regarding the robot.</p>
+
+                    <p>Also, there will be two other short questionnaires, one right in the middle of the study and the
+                        other one at its end, asking about some of your general opinions in this context. Finally, we
+                        will provide you with a code to submit the HIT and receive your remuneration.</p>
+                </h4>
+                <h4 style="text-align: left; ">
+                    You can complete this study only once. Your responses are valuable information that can help us in
+                    our research. You need to complete this task on a desktop computer or laptop, as phone or tablet
+                    screens would be too small for this study. You need to be able to load videos for this study. Please
+                    pay attention and provide the answers as accurate as you can.
+                </h4>
+                <h4 style="text-align: justify;font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;">
+                    <b>II. Your rights as a participant</b>
+                </h4>
+                <h4 style="text-align: justify">
+                    Your participation in this study is voluntary. You may decline to answer any question(s) you prefer
+                    not to answer in the demographic information form. You may decide to stop at any time. If this is
+                    the case, please close the page and leave this HIT. Contact us by email (sirrl.waterloo@gmail.com)
+                    with your Mechanical Turk ID in this situation, so we can check your progress and remunerate you for
+                    the proportion of what you completed. In this case, your data will be discarded and not be used in
+                    the study.
+                </h4>
+                <h4 style="text-align: justify; border-style: solid; padding: 20px; border-width: 2px;">
+                    <p><b>Procedure:</b></p>
+
+                    <p><b>You will be paid $2 (the amount specified on the HIT, plus a bonus of $1) if
+                    you complete all the steps of the experiment.</b> If you do not wish to continue at any point, your
+                    participation in the study will end and you will be remunerated for the proportion of what you
+                    completed (number of questions that you have answered). If you wish to stop at any time, please do
+                    not submit the HIT. Contact us instead at sirrl.waterloo@gmail.com , and you will receive the amount
+                    specified on the HIT ($1), plus an additional payment based on the number of questions that you have
+                    completed. For example, if you wish to stop in the middle of the study, you will receive
+                    ($1)+($1/2)= $1.5.</p>
+                </h4>
+                <h4 style="text-align: left;">
+                    To accept your HIT, you must enter a code that will be provided to you in the last page of the study
+                    or will be sent to you by us if you end the study earlier. We will not be able to accept your HIT if
+                    you do not provide a valid code.</h4>
+                <h4 style="text-align: justify">
+                    <b>Benefits of the study:</b> Participation in this study may not provide any personal benefit to
+                    you. However, the study will benefit the academic community and the research team. We plan to
+                    publish the results of this study, and researchers in the field of social robotics can potentially
+                    benefit from that. We hope the outcomes of this experiment pave the way for designing more
+                    intelligent robotic systems.
+                </h4>
+                <h4 style="text-align: justify">
+                    <b>Confidentiality of identities and data:</b> You will not be identified individually in any
+                    written reports of this research. Note that when information is transmitted over the internet,
+                    privacy cannot be entirely guaranteed. There is always a risk that your responses may be intercepted
+                    by a third party (e.g., government agencies or hackers). Any confidential information (namely your
+                    Mechanical Turk ID) will be removed from our records after 1 month from your participation. You may
+                    withdraw your consent and ask us for deleting your data within this period by contacting
+                    sirrl.waterloo@gmail.com. The data captured will be securely stored on a password-protected lab
+                    server with access only for the researchers. Anonymized data may be published publicly in the
+                    future, and will be stored for a minimum of 7 years. Data may be deposited in an online public
+                    repository/database. This process is integral to the research process as it allows other researchers
+                    to verify results and avoid duplicating research.
+                </h4>
+                <h4 style="text-align: justify;font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;">
+                    <b>III. Questions, comments, or concerns</b>
+                </h4>
+                <h4 style="text-align: justify">
+                    <b>Ethics clearance:</b> This study has been reviewed and received ethics clearance through a
+                    University of Waterloo Research Ethics Committee (ORE#42731). If you have questions for the
+                    Committee contact the Office of Research Ethics, at 1-519-888-4567 ext. 36005 or
+                    ore-ceo@uwaterloo.ca.
+                </h4>
+                <h4 style="text-align: justify">
+                    <b>Contact Information:</b> If you have any questions regarding this study, or would like additional
+                    information about your participation, please contact us by email at sirrl.waterloo@gmail.com.
+                </h4>
+            </div>
+            <div class="col-lg-2 col-md-2"></div>
+        </div>
+        <div class="row">
+            <div class="col-lg-2 col-md-2"></div>
+            <div class="col-lg-8 col-md-8" id="con-frame" style="margin: 0; padding: 10;">
+                <h4 style="text-align: justify;font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;">
+                    <b>IV. Consent</b>
+                </h4>
+                <h4 style="text-align: left;font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;"><b>Thank you
+                        for your interest
+                        in our research and your assistance with this project.
+                        You must be 18 years of age or older to consent to take part in this study. By
+                        accepting this consent form, you are not waiving your legal rights or releasing the
+                        investigator(s) or involved institution(s) from their legal and professional
+                        responsibilities.</b></h4>
+                <input type="radio" class="radio-custom" name="con" id="con" onclick="" />
+                <label for="con" class="radio-custom-label">With full knowledge of all foregoing, I agree, of my own
+                    free will,
+                    to participate in this study.</label>
+            </div>
+        </div>
+        <div class="row" style="margin-top: 20px;">
+            <div class="col-lg-2 col-md-2"></div>
+            <div class="col-lg-8 col-md-8">
+                <div class="row" id="mturk-frame" style="margin: 0; padding: 0;">
+                    <label for="mturk_id" style="width:150px">Mechanical Turk ID:</label>
+                    <input type="text" style="width: 300px;" id="mturk_id" onchange="update_mturk_id(this.value)"
+                        disabled>
+                </div>
+                <div class="row" id="hit-frame" style="margin: 0; padding: 0;">
+                    <label for="hit_id" style="width:150px">HIT ID:</label>
+                    <input type="text" style="width: 300px;" id="hit_id" onchange="update_hit_id(this.value)" disabled>
+                </div>
+            </div>
+            <div class="col-lg-2 col-md-2"></div>
+        </div>
+        
+        <div class="row" style="margin-top: 20px;">
+            <div class="col-lg-2 col-md-2"></div>
+            <div class="col-lg-8 col-md-8" style="text-align:left">
+                <h4 style="margin-top: 6px"><b>You may save this page for your future reference. </b>
+                </h4>
+             </div>
+        </div>
+
+
+        <div class="row" style="margin-top: 20px;">
+            <div class="col-lg-2 col-md-2"></div>
+            <div class="col-lg-8 col-md-8" style="text-align:center">
+                <h4 style="margin-top: 6px"><b>-Please do not press "back" or "refresh" button on your browser at any point-</b>
+                </h4>
+                <input class="btn btn-success" type="button" value="Next" onclick="to_demons(1)"
+                    style="background-color: #66c2fff1; border: 2px solid #000; color: #000; width:100px; height:50px; font-weight: bold; font-size: 20px">
+            </div>
+            <div class="col-lg-2 col-md-2" style="height: 100px;"></div>
+        </div>
+        <div class="col-lg-2 col-md-2"></div>
+    </div>
+    <script language="JavaScript">
+        let split = window.location.href.split("/");
+        let domain = split.slice(0, split.length - 1).join("/");
+        let mturk_id = "error";
+        let hit_id = "error";
+        let gr;
+        let group = 1;
+        let group_d;
+
+        function init() {
+            let url = new URL(window.location.href);
+            var is_chrome = navigator.userAgent.toLowerCase().indexOf('chrome') > -1;
+            if (!is_chrome) {
+                alert("It is recommended to use Google Chrome browser to open this link.");
+            }
+            group_d = url.searchParams.get("g");
+            if(group_d == 424523){
+                group = 1;
+            }
+            if(group_d == 674756){
+                group = 2;
+            }
+            if(group_d == 238765){
+                group = 3;
+            }
+            mturk_id = url.searchParams.get("mturk_id");
+            hit_id = url.searchParams.get("hit_id");
+            document.getElementById("mturk_id").value = mturk_id;
+            document.getElementById("hit_id").value = hit_id;
+            if (document.getElementById("mturk_id").value === "") {
+                document.getElementById("mturk_id").disabled = false;
+            }
+            if (document.getElementById("mturk_id").value === "") {
+                document.getElementById("hit_id").disabled = false;
+            }
+        }
+        function update_mturk_id(val) {
+            mturk_id = val;
+        }
+        function update_hit_id(val) {
+            hit_id = val;
+        }
+        function to_demons(val) {
+            //val = Math.floor(Math.random() * 2) + 1;     /////////////////////////////////////////////////////////////Random
+            let complete = true;
+            let frame = null;
+            console.info(document.getElementById("con"));
+            if (!document.getElementById("con").checked) {
+                frame = document.getElementById("con-frame");
+                frame.style.borderStyle = "solid";
+                frame.style.borderColor = "red";
+                frame.style.borderWidth = "3px";
+                complete = false;
+            }
+            if (document.getElementById("mturk_id").value === "") {
+                frame = document.getElementById("mturk-frame");
+                frame.style.borderStyle = "solid";
+                frame.style.borderColor = "red";
+                frame.style.borderWidth = "3px";
+                complete = false;
+            }
+            if (document.getElementById("hit_id").value === "") {
+                frame = document.getElementById("hit-frame");
+                frame.style.borderStyle = "solid";
+                frame.style.borderColor = "red";
+                frame.style.borderWidth = "2px";
+                complete = false;
+            }
+            if (complete) {
+                let xhttp = new XMLHttpRequest();
+                xhttp.open("GET", domain + "/create?mturk_id=" + mturk_id + "&hit_id=" + hit_id + "&group=" + group);
+                xhttp.onreadystatechange = function () {
+                    if (xhttp.readyState === 4) {
+                        let session_id = xhttp.response;
+                        if (session_id == null || session_id === "") window.location.replace(domain + "/" + "error2.html");
+                        if (session_id === "error") window.location.replace(domain + "/" + "error2.html");
+                        window.location.replace(domain + "/" + "demographics.html" + "?session_id=" + session_id + "&g=" + group);
+                    }
+                };
+                xhttp.send();
+            }
+        }
+    </script>
+</body>
+</html>

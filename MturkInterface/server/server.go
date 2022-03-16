@@ -29,10 +29,12 @@ func Start() {
 	fileServer := noDirListing(http.FileServer(http.Dir("server/static")))
 	http.Handle("/", fileServer)
 
+	http.HandleFunc("/create", createHandler)
+
 	//http.HandleFunc("/check", checkHandler)
 	//http.HandleFunc("/comment", commentHandler)
 	//http.HandleFunc("/complete", completeHandler)
-	http.HandleFunc("/create", createHandler)
+
 	//http.HandleFunc("/demographics", demographicsHandler)
 	//http.HandleFunc("/final", finalHandler)
 	//http.HandleFunc("/picture", pictureHandler)
@@ -104,10 +106,10 @@ func getUrlIntParam(r *http.Request, name string) int {
 // Handler for /create
 //
 func createHandler(w http.ResponseWriter, r *http.Request) {
-	mturkId := getUrlParam(r, "mturk_id")
-	hitId := getUrlParam(r, "hit_id")
-	group := getUrlParam(r, "group")
-	sessionId := database.CreateUser(mturkId, hitId, group)
+	userId := getUrlParam(r, "user_id")
+	currentHash := getUrlParam(r, "current_hash")
+	//group := getUrlParam(r, "group")
+	sessionId := database.CreateUser(userId, currentHash)
 	_, err := w.Write([]byte(sessionId))
 	reportError(err)
 }
