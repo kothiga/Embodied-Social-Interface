@@ -17,14 +17,19 @@
 //#include <chrono>
 //#include <map>
 //#include <memory>
-//#include <string>
+
+#include <iostream>
+#include <sstream>
+#include <string>
+#include <vector>
 
 #include <yarp/os/Network.h>
-#include <yarp/os/RFModule>
+#include <yarp/os/RFModule.h>
 #include <yarp/os/RpcClient.h>
+#include <yarp/os/LogStream.h>
 #include <yarp/os/Bottle.h>
 
-//#include <ncurses.h>
+#include <ncurses.h>
 
 //#include <stateMachine.hpp>
 //#include <csvLogger.hpp>
@@ -38,6 +43,21 @@ class EmbodiedSocialInterface : public yarp::os::RFModule {
     yarp::os::RpcClient rpc;
     yarp::os::Port handler;
 
+    std::string module_name;
+
+    //int max_height;
+
+    /* ============================================================================
+    **  Yarp ports for controlling behavior flow of interface.
+    ** ============================================================================ */
+    yarp::os::Port audio_port;
+    yarp::os::Port video_port;
+    yarp::os::Port web_port;
+
+
+    std::vector<std::string> showable_rows;
+
+
 
     public:
     /* ============================================================================
@@ -47,11 +67,19 @@ class EmbodiedSocialInterface : public yarp::os::RFModule {
     **
     ** @return success status of opening the rf module.
     ** ============================================================================ */
-    bool configure(ResourceFinder &rf);
+    bool configure(yarp::os::ResourceFinder &rf);
 
 
     /* ============================================================================
-    **  Close the resource finder gracefully.
+    **  Interrupt the resource finder module.
+    **
+    ** @return success status of interrupting the rf module.
+    ** ============================================================================ */
+    bool interruptModule();
+
+
+    /* ============================================================================
+    **  Close the resource finder module gracefully.
     **
     ** @return success status of closing the rf module.
     ** ============================================================================ */
@@ -61,7 +89,7 @@ class EmbodiedSocialInterface : public yarp::os::RFModule {
     /* ============================================================================
     **  
     ** ============================================================================ */
-    bool respond(const Bottle &cmd, Bottle &reply);
+    bool respond(const yarp::os::Bottle &cmd, yarp::os::Bottle &reply);
 
 
     /* ============================================================================
@@ -80,7 +108,7 @@ class EmbodiedSocialInterface : public yarp::os::RFModule {
     /* ============================================================================
     **  
     ** ============================================================================ */
-    void temp();
+    void parseShowable(std::string str);
 
 };
 
