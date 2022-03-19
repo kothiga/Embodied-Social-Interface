@@ -24,10 +24,12 @@
 #include <vector>
 
 #include <yarp/os/Network.h>
+
+#include <yarp/os/Bottle.h>
+#include <yarp/os/LogStream.h>
 #include <yarp/os/RFModule.h>
 #include <yarp/os/RpcClient.h>
-#include <yarp/os/LogStream.h>
-#include <yarp/os/Bottle.h>
+#include <yarp/os/Time.h>
 
 #include <ncurses.h>
 
@@ -45,7 +47,10 @@ class EmbodiedSocialInterface : public yarp::os::RFModule {
 
     std::string module_name;
 
-    //int max_height;
+    int max_tower_height;
+    int window_height;
+    int window_width;
+
 
     /* ============================================================================
     **  Yarp ports for controlling behavior flow of interface.
@@ -55,8 +60,15 @@ class EmbodiedSocialInterface : public yarp::os::RFModule {
     yarp::os::Port web_port;
 
 
+    /* ============================================================================
+    **  Control variables for the interface.
+    ** ============================================================================ */
     std::vector<std::string> showable_rows;
-
+    int selected_from, selected_to;
+    
+    int move_count;
+    int waiting_count;
+    bool game_complete;
 
 
     public:
@@ -108,7 +120,31 @@ class EmbodiedSocialInterface : public yarp::os::RFModule {
     /* ============================================================================
     **  
     ** ============================================================================ */
+    std::string communicate(const std::string msg, yarp::os::Bottle& command, yarp::os::Bottle& response);
+
+
+    /* ============================================================================
+    **  
+    ** ============================================================================ */
+    void keyPressed(int key_num);
+
+
+    /* ============================================================================
+    **  
+    ** ============================================================================ */
     void parseShowable(std::string str);
+
+
+    /* ============================================================================
+    **  
+    ** ============================================================================ */
+    void drawInterface();
+
+
+    /* ============================================================================
+    **  
+    ** ============================================================================ */
+    void drawWaiting();
 
 };
 

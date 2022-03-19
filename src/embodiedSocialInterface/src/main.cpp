@@ -32,7 +32,7 @@ int main (int argc, char **argv) {
 
     //-- Config the resource finder.
     yarp::os::ResourceFinder rf;
-    rf.setVerbose(true);
+    rf.setVerbose(false);
 	rf.setDefaultConfigFile("config.ini");    // overridden by --from parameter
 	rf.setDefaultContext("embodied_social");  // overridden by --context parameter
     rf.configure(argc,argv);

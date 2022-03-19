@@ -37,7 +37,7 @@ target_include_directories(
 target_link_libraries(
     ${TARGET_NAME}
     ${YARP_LIBRARIES}
-    ncurses
+    ncursesw
 )
 
 message("${YARP_LIBRARIES}")
