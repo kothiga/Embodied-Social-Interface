@@ -16,60 +16,70 @@
 bool EmbodiedSocialInterface::configure(yarp::os::ResourceFinder &rf) {
 
     //-- Get some variables from the configuration file that the resource finder loaded.
-    module_name = rf.check("name", yarp::os::Value("/embodiedSocialInterface"), "module name (string)").asString();
-    this->setName(module_name.c_str());
+    _module_name = rf.check("name", yarp::os::Value("/embodiedSocialInterface"), "module name (string)").asString();
+    this->setName(_module_name.c_str());
 
-    max_tower_height = 10;
-    window_height    = 13; // set via rf.
-    window_width     = 36;
+    _max_tower_height = 10;
+    _window_height    = 13; // TODO: set via rf.
+    _window_width     = 36;
     
 
     //-- Attach a port of the same name as the module so that messages 
     //-- received from the port are redirected to the respond method.
     std::string handle_name = this->getName();
-    if (!handler.open(handle_name.c_str())) {
+    if (!_handler.open(handle_name.c_str())) {
         yInfo("%s: Unable to open port %s", this->getName().c_str(), handle_name.c_str());
         return false;
     }
-    this->attach(handler);
+    this->attach(_handler);
 
 
     //-- Initialize the rpc client for sending/receiving messages with the game server.
     std::string rpc_name = this->getName() + "/rpc";
-    if (!rpc.open(rpc_name.c_str())) {
+    if (!_rpc.open(rpc_name.c_str())) {
         yInfo("%s: Unable to open port %s", this->getName().c_str(), rpc_name.c_str());
         return false;
     }
 
 
-    // TODO: Set everything else.
-    /* // Don't need these right now...
+    //-- Initialize the auxiliary ports.
     bool ok = true;
-    ok &= audio_port.open( this->getName() + "/audio:o" );
-    ok &= video_port.open( this->getName() + "/video:o" );
-    ok &= web_port.open(   this->getName() + "/web:o"   );
+    ok &= _audio_port.open( this->getName() + "/audio:o" );
+    ok &= _video_port.open( this->getName() + "/video:o" );
+    ok &= _web_port.open(   this->getName() + "/web:o"   );
     if (!ok) {
-        yInfo("%s: Something went wrong opening the auxiliary ports!", this->getName.c_str());
+        yInfo("%s: Something went wrong opening the auxiliary ports!", this->getName().c_str());
         return false;
     }
-    */   
 
+
+    //-- Initialize the file stream.
+    _user_name = rf.check("user",  yarp::os::Value("user01"), "user name (string)").asString();
+    _file_path = rf.check("fpath", yarp::os::Value("./"),     "file path (string)").asString();
+
+    std::string file_name = _file_path + "/" + _user_name + ".csv";
+    if (!_logger.openLogger(file_name)) {
+        yInfo("%s: Unable to file stream for logging %s", this->getName().c_str(), file_name.c_str());
+        return false;
+    }
+
+
+    //-- Init the from and to as unselected.
     selected_from = -1;
     selected_to   = -1;
 
-    move_count    =  0;
-    waiting_count =  0;
-    game_complete = false;
+
+    //-- Init some interface logic vars.
+    _move_count    =  0;
+    _waiting_count =  0;
+    _game_complete = false;
     
 
     //-- Init the ncurses window.
     setlocale(LC_ALL, "");
-    
     initscr();
     noecho();
-    
     keypad(stdscr, TRUE);
-
     refresh();
 
     return true;
@@ -77,8 +87,15 @@ bool EmbodiedSocialInterface::configure(yarp::os::ResourceFinder &rf) {
 
 
 bool EmbodiedSocialInterface::interruptModule() {
-    handler.interrupt();
-    rpc.interrupt();
+    
+    //-- Interrupt the ports.
+    _handler.interrupt();
+    _rpc.interrupt();
+
+    _audio_port.interrupt();
+    _video_port.interrupt();
+    _web_port.interrupt();
+
     return true;
 }
 
@@ -86,14 +103,21 @@ bool EmbodiedSocialInterface::interruptModule() {
 bool EmbodiedSocialInterface::close() {
 
     //-- Close the yarp ports.
-    handler.close();
-    rpc.close();
+    _handler.close();
+    _rpc.close();
+
+    _audio_port.close();
+    _video_port.close();
+    _web_port.close();
+
+    //-- Close the file stream.
+    _logger.closeLogger();
 
     //-- End the ncurses window.
     endwin();
 
     //-- Give a little end of game message.
-    yInfo() << "You made it to the end in" << move_count << "moves!!";
+    yInfo() << "You made it to the end in" << _move_count << "moves!!";
 
     return true;
 }
@@ -125,7 +149,7 @@ double EmbodiedSocialInterface::getPeriod() {
 bool EmbodiedSocialInterface::updateModule() {
 
     //-- Check if we have a connection to the game server... 
-    if (rpc.getOutputCount() == 0) {
+    if (_rpc.getOutputCount() == 0) {
         drawWaiting();
         yarp::os::Time::delay(1.0);
         return true;
@@ -191,21 +215,47 @@ bool EmbodiedSocialInterface::updateModule() {
             + std::to_string(selected_from-1) + " " 
             + std::to_string(selected_to-1);
 
+
+        //-- Get the current hash and dist incase this move 
+        //-- is successful (pass to csv logger).
+        std::string game_hash = communicate("hash", cmd, rsp);
+        std::string game_dist = communicate("dist", cmd, rsp);
+
+
         //-- Write the move to the game server.
         std::string move_status = communicate(move, cmd, rsp);
 
-        //-- If the move was a good move, reset the selected
-        if (move_status != "0") { // "1" and "2" are accepted moves.
-            selected_from = -1;
-            selected_to   = -1;
-            move_count++;
+        //-- If the move was not good, go to next update step.
+        if (move_status == "0") { // "1" and "2" are accepted moves.
+            return true;
         }
 
+        
+        // Log the data for this move.
+        _logger.log(
+            /*int_time   =*/ yarp::os::Time::now(),
+            /*user_id    =*/ _user_name,
+            /*channel    =*/ "", //TODO: state_machine.get...
+            /*hint_id    =*/ "",
+            /*hash       =*/ game_hash,
+            /*distance   =*/ game_dist,
+            /*move_number=*/ _move_count,
+            /*from       =*/ selected_from,
+            /*to         =*/ selected_to
+        );
+
+
+        //-- Reset the selected moves and increment counter.
+        selected_from = -1;
+        selected_to   = -1;
+        _move_count++;
+
+        
         //-- Game complete, close module.
         if (move_status == "2") { 
 
             //-- Mark the game as completed.
-            game_complete = true;
+            _game_complete = true;
 
             //-- Get the final board state.
             board_status = communicate("show", cmd, rsp);
@@ -213,23 +263,40 @@ bool EmbodiedSocialInterface::updateModule() {
             //-- Parse the final board status and show it.
             parseShowable(board_status);
             drawInterface();
-            
+
+            //-- Get the final board state information.
+            game_hash = communicate("hash", cmd, rsp);
+            game_dist = communicate("dist", cmd, rsp);
+
+            //-- Finally log it.
+            _logger.log(
+                /*int_time   =*/ yarp::os::Time::now(),
+                /*user_id    =*/ _user_name,
+                /*channel    =*/ "",
+                /*hint_id    =*/ "",
+                /*hash       =*/ game_hash,
+                /*distance   =*/ game_dist,
+                /*move_number=*/ _move_count,
+                /*from       =*/ selected_from,
+                /*to         =*/ selected_to
+            );
+
             //-- Wait for a few seconds before beginning to wrap up.
             yarp::os::Time::delay(5.0);
 
             //-- Tell the game to close.
             communicate("exit", cmd, rsp);
 
-            //
-            // Should write to the auxiliary ports here.
-            //
+            //-- Write to the auxiliary ports to cleanup.
+            sendMessage(_audio_port, "exit");
+            sendMessage(_video_port, "exit");
+            sendMessage(_web_port,   "exit");
             
             this->interruptModule(); 
             this->close(); 
             return false; 
         }
     }
-
 
     return true;
 }
@@ -244,7 +311,7 @@ std::string EmbodiedSocialInterface::communicate(const std::string msg, yarp::os
     command.addString(msg);
 
     //-- Write the command and wait for a response.
-    rpc.write(command, response);
+    _rpc.write(command, response);
 
     //-- Return the first item in the bottle
     //-- Note:
@@ -252,6 +319,19 @@ std::string EmbodiedSocialInterface::communicate(const std::string msg, yarp::os
     //--   it can be accessed outside this function since we're
     //--   passed by reference.
     return response.get(0).asString();
+}
+
+
+void EmbodiedSocialInterface::sendMessage(yarp::os::Port& port, const std::string msg) {
+    
+    //-- Put my message in a modem.
+    yarp::os::Bottle bot;
+    bot.addString(msg);
+
+    //-- And throw it in the Cyber Sea.
+    port.write(bot);
+
+    return;
 }
 
 
@@ -305,25 +385,24 @@ void EmbodiedSocialInterface::drawInterface() {
     std::string line_buffer;
 
     //-- ROW SECTION 1: move count.
-    std::string move_number = std::to_string(move_count);
+    std::string move_number = std::to_string(_move_count);
 
     int leadingzeros = 3;
     move_number = std::string(leadingzeros-move_number.length(), '0') + move_number;
-    //move_number.insert(0, 3-move_number.length(), '0'); //two options to try. // replace 3 with "leadingzeros"
     line_buffer = "move #" + move_number;
 
-    if (game_complete) {
+    if (_game_complete) {
         std::string win_buffer = "[YOU WIN!!]";
         line_buffer = win_buffer + std::string(3, ' ') + line_buffer;
         //std::string( (window_width - win_buffer.length() + 1)/2, ' ')  + win_buffer + "\n";
     }
 
     //-- Right Justified
-    line_buffer = std::string(window_width - line_buffer.length(), ' ')  + line_buffer + "\n\n";
+    line_buffer = std::string(_window_width - line_buffer.length(), ' ')  + line_buffer + "\n\n";
     addstr(line_buffer.c_str());
 
     //-- ROW SECTION 2: peg tops until disks.
-    for (int count = 0; count < max_tower_height - (showable_rows.size()-2); ++count) {
+    for (int count = 0; count < _max_tower_height - (showable_rows.size()-2); ++count) {
         addstr(showable_rows[1].c_str());
     }
 
@@ -398,7 +477,7 @@ void EmbodiedSocialInterface::drawInterface() {
         line_buffer += "\n";
 
         std::string enter_buffer = "[ENTER]";
-        line_buffer += std::string( (window_width - enter_buffer.length() + 1)/2, ' ')  + enter_buffer + "\n";
+        line_buffer += std::string( (_window_width - enter_buffer.length() + 1)/2, ' ')  + enter_buffer + "\n";
 
     } else {
         // Nothing selected...
@@ -426,17 +505,17 @@ void EmbodiedSocialInterface::drawWaiting() {
     line_flush += "\n";
 
     //-- Put the waiting dialogue in the middle of the screen.
-    for (int ldx = 0; ldx < window_height/2; ++ldx) {
+    for (int ldx = 0; ldx < _window_height/2; ++ldx) {
         addstr( line_flush.c_str() );
     }
     
     //-- Write an output message on the status.
-    std::string write_string = std::string(8, ' ') + "Waiting for connection to game server..." + waiting[waiting_count % waiting_len] + "\n";
+    std::string write_string = std::string(8, ' ') + "Waiting for connection to game server..." + waiting[_waiting_count % waiting_len] + "\n";
     addstr(write_string.c_str());
-    waiting_count++;
+    _waiting_count++;
 
     //-- Flush the remaining lines.
-    for (int ldx = 0; ldx < window_height/2; ++ldx) {
+    for (int ldx = 0; ldx < _window_height/2; ++ldx) {
         addstr( line_flush.c_str() );
     }
 

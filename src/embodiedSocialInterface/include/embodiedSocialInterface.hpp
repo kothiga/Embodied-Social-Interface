@@ -34,30 +34,39 @@
 #include <ncurses.h>
 
 //#include <stateMachine.hpp>
-//#include <csvLogger.hpp>
+#include <csvLogger.hpp>
 
 
 class EmbodiedSocialInterface : public yarp::os::RFModule {
+
     private:
     /* ============================================================================
     **  Yarp RPC client for sending commands and receiving responses.
     ** ============================================================================ */
-    yarp::os::RpcClient rpc;
-    yarp::os::Port handler;
+    yarp::os::RpcClient _rpc;
+    yarp::os::Port _handler;
 
-    std::string module_name;
+    std::string _module_name;
+    std::string _user_name;
+    std::string _file_path;
 
-    int max_tower_height;
-    int window_height;
-    int window_width;
+    int _max_tower_height;
+    int _window_height;
+    int _window_width;
 
 
     /* ============================================================================
     **  Yarp ports for controlling behavior flow of interface.
     ** ============================================================================ */
-    yarp::os::Port audio_port;
-    yarp::os::Port video_port;
-    yarp::os::Port web_port;
+    yarp::os::Port _audio_port;
+    yarp::os::Port _video_port;
+    yarp::os::Port _web_port;
+
+
+    /* ============================================================================
+    **  Encapsulated objects.
+    ** ============================================================================ */
+    CsvLogger _logger;
 
 
     /* ============================================================================
@@ -66,9 +75,9 @@ class EmbodiedSocialInterface : public yarp::os::RFModule {
     std::vector<std::string> showable_rows;
     int selected_from, selected_to;
     
-    int move_count;
-    int waiting_count;
-    bool game_complete;
+    int _move_count;
+    int _waiting_count;
+    bool _game_complete;
 
 
     public:
@@ -121,6 +130,12 @@ class EmbodiedSocialInterface : public yarp::os::RFModule {
     **  
     ** ============================================================================ */
     std::string communicate(const std::string msg, yarp::os::Bottle& command, yarp::os::Bottle& response);
+
+
+    /* ============================================================================
+    **  
+    ** ============================================================================ */
+    void sendMessage(yarp::os::Port& port, const std::string msg);
 
 
     /* ============================================================================

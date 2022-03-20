@@ -13,13 +13,13 @@ set(${TARGET_NAME}_SRC
     src/main.cpp
     src/embodiedSocialInterface.cpp
     #src/stateMachine.cpp
-    #src/csvLogger.cpp
+    src/csvLogger.cpp
 )
 
 set(${TARGET_NAME}_HDR
     include/embodiedSocialInterface.hpp
     #include/stateMachine.hpp
-    #include/csvLogger.hpp
+    include/csvLogger.hpp
 )
 
 add_executable(
@@ -39,8 +39,6 @@ target_link_libraries(
     ${YARP_LIBRARIES}
     ncursesw
 )
-
-message("${YARP_LIBRARIES}")
 
 install(
     TARGETS        ${TARGET_NAME}
