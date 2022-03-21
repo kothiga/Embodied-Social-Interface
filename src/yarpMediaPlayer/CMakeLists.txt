@@ -5,4 +5,17 @@
 cmake_minimum_required(VERSION 3.12)
 
 
-#set(TARGET_NAME yarpVideoPlayer)
+set(TARGET_NAME yarpMediaPlayer)
+
+set(PROGRAM_PERMISSIONS_DEFAULT
+    OWNER_WRITE OWNER_READ OWNER_EXECUTE
+    GROUP_READ GROUP_EXECUTE
+    WORLD_READ WORLD_EXECUTE)
+
+install(
+    PROGRAMS ./${TARGET_NAME}.py 
+    PERMISSIONS ${PROGRAM_PERMISSIONS_DEFAULT} 
+    DESTINATION bin
+)
+
+############################################################
