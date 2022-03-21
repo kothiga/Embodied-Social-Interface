@@ -1,0 +1,79 @@
+<!-- ================================================================================
+* Copyright: (C) 2022, SIRRL Social and Intelligent Robotics Research Laboratory, 
+*     University of Waterloo, All rights reserved.
+* 
+* Authors: 
+*     Austin Kothig <austin.kothig@uwaterloo.ca>
+* 
+* CopyPolicy: Released under the terms of the MIT License. 
+*     See the accompanying LICENSE file for details.
+* ================================================================================ -->
+
+<application>
+
+    <!-- ==================== APP META ==================== -->
+
+    <name> Social Embodiment </name>
+    <description> Game interface for social embodiment task. </description>
+    <version> 1.0 </version>
+    <authors>
+        <author email="austin.kothig@uwaterloo.ca">Austin Kothig</author>
+    </authors>
+
+
+    <!-- ==================== MAIN MODULES ==================== -->
+
+    <module>
+        <name> gnome-terminal </name>                     <!-- (COLSxROWS+X+Y) -->
+        <parameters> --window-with-profile=PROFILENAME --geometry=80x24+200+200 -- embodiedSocialInterface </parameters>
+        <node> localhost </node>
+    </module>
+
+    <module>
+        <name> yarpTower </name>
+        <parameters> </parameters>
+        <node> localhost </node>
+    </module>
+
+    <module>
+        <name> yarpMediaPlayer.py </name>
+        <parameters> </parameters>
+        <node> localhost </node>
+    </module>
+
+    <module>
+        <name> yarpWebOpener.py </name>
+        <parameters> </parameters>
+        <node> localhost </node>
+    </module>
+
+    <!-- ======================= MONITORING ======================= -->
+
+    <module>
+        <name>yarpview</name>
+        <parameters> --name /view/goal:i --minimal --x 0 --y 0 --h 420 --w 305 </parameters>
+        <node>localhost</node>
+    </module>
+
+
+    <!-- ======================= CONNECTIONS ======================= -->
+
+    <connection>
+        <from> /embodiedSocialInterface/rpc </from>
+        <to>   /yarpTower/rpc               </to>
+        <protocol> tcp </protocol>
+    </connection>
+
+    <connection>
+        <from> /embodiedSocialInterface/media:o </from>
+        <to>   /mediaPlayer:i                   </to>
+        <protocol> tcp </protocol>
+    </connection>
+
+    <connection>
+        <from> /embodiedSocialInterface/web:o </from>
+        <to>   /webOpener:i                   </to>
+        <protocol> tcp </protocol>
+    </connection>
+
+</application>

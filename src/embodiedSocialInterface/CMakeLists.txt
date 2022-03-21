@@ -12,13 +12,13 @@ find_package(YARP REQUIRED)
 set(${TARGET_NAME}_SRC
     src/main.cpp
     src/embodiedSocialInterface.cpp
-    #src/stateMachine.cpp
+    src/stateMachine.cpp
     src/csvLogger.cpp
 )
 
 set(${TARGET_NAME}_HDR
     include/embodiedSocialInterface.hpp
-    #include/stateMachine.hpp
+    include/stateMachine.hpp
     include/csvLogger.hpp
 )
 
@@ -44,3 +44,5 @@ install(
     TARGETS        ${TARGET_NAME}
     DESTINATION    bin  
 )
+
+############################################################

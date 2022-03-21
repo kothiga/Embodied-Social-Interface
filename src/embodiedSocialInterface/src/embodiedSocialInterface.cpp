@@ -19,11 +19,6 @@ bool EmbodiedSocialInterface::configure(yarp::os::ResourceFinder &rf) {
     _module_name = rf.check("name", yarp::os::Value("/embodiedSocialInterface"), "module name (string)").asString();
     this->setName(_module_name.c_str());
 
-    _max_tower_height = 10;
-    _window_height    = 13; // TODO: set via rf.
-    _window_width     = 36;
-    
-
     //-- Attach a port of the same name as the module so that messages 
     //-- received from the port are redirected to the respond method.
     std::string handle_name = this->getName();
@@ -44,8 +39,7 @@ bool EmbodiedSocialInterface::configure(yarp::os::ResourceFinder &rf) {
 
     //-- Initialize the auxiliary ports.
     bool ok = true;
-    ok &= _audio_port.open( this->getName() + "/audio:o" );
-    ok &= _video_port.open( this->getName() + "/video:o" );
+    ok &= _media_port.open( this->getName() + "/media:o" );
     ok &= _web_port.open(   this->getName() + "/web:o"   );
     if (!ok) {
         yInfo("%s: Something went wrong opening the auxiliary ports!", this->getName().c_str());
@@ -64,15 +58,45 @@ bool EmbodiedSocialInterface::configure(yarp::os::ResourceFinder &rf) {
     }
 
 
+    //-- Init the state machine states.
+    _media_path = rf.check("mpath", yarp::os::Value("./data"), "file path (string)").asString();
+
+    yarp::os::Bottle* bot = rf.find("states").asList();
+    if (bot) {
+        for (int idx = 0; idx < bot->size(); ++idx) {
+            _machine.addState(bot->get(idx).toString());
+        }
+    } else {
+        _machine.addState("none");
+    }
+
+
+    //-- Set the time to wait between allowing moves to pass
+    _time_between = rf.check("seconds", yarp::os::Value(5.0), " (double)").asFloat64();
+    std::cout << "time: " << _time_between << std::endl;
+
+
+    //-- Set some interface appearance vars.
+    _max_tower_height = rf.check("maxTower", yarp::os::Value(10), " (int)").asInt32();
+    _window_height    = rf.check("height",   yarp::os::Value(13), " (int)").asInt32(); // TODO: set via rf.
+    _window_width     = rf.check("width",    yarp::os::Value(36), " (int)").asInt32();
+    
+
+    //-- Set the URL to the end of game survey.
+    _end_survey = rf.check("survey", yarp::os::Value("https://https://kothiga.github.io/"), "survey url (string)").asString();
+
+
     //-- Init the from and to as unselected.
     selected_from = -1;
     selected_to   = -1;
 
 
     //-- Init some interface logic vars.
-    _move_count    =  0;
-    _waiting_count =  0;
-    _game_complete = false;
+    _move_count        =  0;
+    _waiting_count     =  0;
+    _game_complete     = false;
+    _current_hint_sent = false;
+    _last_execution    = yarp::os::Time::now();
     
 
     //-- Init the ncurses window.
@@ -92,8 +116,7 @@ bool EmbodiedSocialInterface::interruptModule() {
     _handler.interrupt();
     _rpc.interrupt();
 
-    _audio_port.interrupt();
-    _video_port.interrupt();
+    _media_port.interrupt();
     _web_port.interrupt();
 
     return true;
@@ -106,8 +129,7 @@ bool EmbodiedSocialInterface::close() {
     _handler.close();
     _rpc.close();
 
-    _audio_port.close();
-    _video_port.close();
+    _media_port.close();
     _web_port.close();
 
     //-- Close the file stream.
@@ -150,8 +172,16 @@ bool EmbodiedSocialInterface::updateModule() {
 
     //-- Check if we have a connection to the game server... 
     if (_rpc.getOutputCount() == 0) {
+
         drawWaiting();
         yarp::os::Time::delay(1.0);
+        
+        sendMessage(_media_port, "none");
+        _current_hint_sent = false;
+
+        _last_execution = yarp::os::Time::now();
+        _start_time     = yarp::os::Time::now();
+
         return true;
     }
     
@@ -169,11 +199,17 @@ bool EmbodiedSocialInterface::updateModule() {
 
     //-- Query the game server for the current boards next best move.
     std::string game_hint = communicate("hint", cmd, rsp);
+    _machine.setCurrentHint(game_hint);
 
 
-    //
-    // Do something with the hint and state_machine here.
-    //
+    //-- Allow some time for the out to finish executing before sending next in.
+    if (!_current_hint_sent && _media_port.getOutputCount() != 0) {
+        
+        std::string media_msg = _media_path + "/" + _machine.getStateHint("in") + ".mp4";
+        sendMessage(_media_port, media_msg);
+        
+        _current_hint_sent = true;
+    }
 
 
     //-- Wait for key input.
@@ -210,6 +246,13 @@ bool EmbodiedSocialInterface::updateModule() {
     //-- Time to try making a move!
     if (execute_move) {
 
+        //-- If this move was too fast, don't let it go through.
+        if ((yarp::os::Time::now() - _last_execution) < _time_between) {
+            std::cout << yarp::os::Time::now() - _last_execution << " no" << std::endl;
+            return true;
+        }
+
+
         //-- Format the move.
         std::string move = "move " //+ game_hint;    // uncomment this for auto-solve.
             + std::to_string(selected_from-1) + " " 
@@ -233,15 +276,15 @@ bool EmbodiedSocialInterface::updateModule() {
         
         // Log the data for this move.
         _logger.log(
-            /*int_time   =*/ yarp::os::Time::now(),
+            /*int_time   =*/ yarp::os::Time::now() - _start_time,
             /*user_id    =*/ _user_name,
-            /*channel    =*/ "", //TODO: state_machine.get...
-            /*hint_id    =*/ "",
+            /*channel    =*/ _machine.getCurrentState(),
+            /*hint_id    =*/ game_hint,
             /*hash       =*/ game_hash,
             /*distance   =*/ game_dist,
             /*move_number=*/ _move_count,
-            /*from       =*/ selected_from,
-            /*to         =*/ selected_to
+            /*from       =*/ selected_from-1,
+            /*to         =*/ selected_to-1
         );
 
 
@@ -249,6 +292,20 @@ bool EmbodiedSocialInterface::updateModule() {
         selected_from = -1;
         selected_to   = -1;
         _move_count++;
+
+
+        //-- Retract the hint back to the home state.
+        std::string media_msg = _media_path + "/" + _machine.getStateHint("out") + ".mp4";
+        sendMessage(_media_port, media_msg);
+        
+        _current_hint_sent = false;
+
+
+        //-- Set the previous execution time.
+        _last_execution = yarp::os::Time::now();
+        
+        //-- Step the state machine.
+        _machine.step();
 
         
         //-- Game complete, close module.
@@ -270,26 +327,27 @@ bool EmbodiedSocialInterface::updateModule() {
 
             //-- Finally log it.
             _logger.log(
-                /*int_time   =*/ yarp::os::Time::now(),
+                /*int_time   =*/ yarp::os::Time::now() - _start_time,
                 /*user_id    =*/ _user_name,
                 /*channel    =*/ "",
                 /*hint_id    =*/ "",
                 /*hash       =*/ game_hash,
                 /*distance   =*/ game_dist,
                 /*move_number=*/ _move_count,
-                /*from       =*/ selected_from,
-                /*to         =*/ selected_to
+                /*from       =*/ selected_from, // -1
+                /*to         =*/ selected_to    // -1
             );
 
             //-- Wait for a few seconds before beginning to wrap up.
             yarp::os::Time::delay(5.0);
+            sendMessage(_web_port, _end_survey);
+
 
             //-- Tell the game to close.
             communicate("exit", cmd, rsp);
 
             //-- Write to the auxiliary ports to cleanup.
-            sendMessage(_audio_port, "exit");
-            sendMessage(_video_port, "exit");
+            sendMessage(_media_port, "exit");
             sendMessage(_web_port,   "exit");
             
             this->interruptModule(); 

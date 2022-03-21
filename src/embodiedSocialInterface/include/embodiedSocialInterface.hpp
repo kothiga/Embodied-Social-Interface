@@ -33,7 +33,7 @@
 
 #include <ncurses.h>
 
-//#include <stateMachine.hpp>
+#include <stateMachine.hpp>
 #include <csvLogger.hpp>
 
 
@@ -49,6 +49,10 @@ class EmbodiedSocialInterface : public yarp::os::RFModule {
     std::string _module_name;
     std::string _user_name;
     std::string _file_path;
+    std::string _media_path;
+    std::string _end_survey;
+
+    double _time_between;
 
     int _max_tower_height;
     int _window_height;
@@ -58,15 +62,15 @@ class EmbodiedSocialInterface : public yarp::os::RFModule {
     /* ============================================================================
     **  Yarp ports for controlling behavior flow of interface.
     ** ============================================================================ */
-    yarp::os::Port _audio_port;
-    yarp::os::Port _video_port;
+    yarp::os::Port _media_port;
     yarp::os::Port _web_port;
 
 
     /* ============================================================================
     **  Encapsulated objects.
     ** ============================================================================ */
-    CsvLogger _logger;
+    StateMachine _machine;
+    CsvLogger    _logger;
 
 
     /* ============================================================================
@@ -78,6 +82,10 @@ class EmbodiedSocialInterface : public yarp::os::RFModule {
     int _move_count;
     int _waiting_count;
     bool _game_complete;
+    bool _current_hint_sent;
+
+    double _last_execution;
+    double _start_time;
 
 
     public:

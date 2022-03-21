@@ -5,4 +5,6 @@
 cmake_minimum_required(VERSION 3.12)
 
 
-#set(TARGET_NAME yarpAudioPlayer)
+# Add the various projects.
+add_subdirectory(clip_maker)
+add_subdirectory(embodied_social)

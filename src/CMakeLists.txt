@@ -8,8 +8,7 @@ cmake_minimum_required(VERSION 3.12)
 # Add the various projects.
 add_subdirectory(clipMaker)
 add_subdirectory(embodiedSocialInterface)
-add_subdirectory(yarpAudioPlayer)
-add_subdirectory(yarpVideoPlayer)
+add_subdirectory(yarpMediaPlayer)
 add_subdirectory(yarpWebOpener)
 
 

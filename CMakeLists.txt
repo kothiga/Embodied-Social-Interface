@@ -75,7 +75,7 @@ endif()
 include(AddUninstallTarget)
 
 # Add the app directory for the project.
-#add_subdirectory(app)
+add_subdirectory(app)
 
 # Add the source directory for the project.
 add_subdirectory(src)
