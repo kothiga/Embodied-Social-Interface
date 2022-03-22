@@ -21,12 +21,13 @@ import argparse
 
 def getArgs():
     parser = argparse.ArgumentParser(description='yarpMediaPlayer')
-    parser.add_argument('-n', '--name',    default='/mediaPlayer',             help='Name for the module.         (default: {})'.format('/mediaPlayer'))
-    parser.add_argument('-x',              default=0,     type=int,            help='Position for window to be.   (default: {})'.format(0))
-    parser.add_argument('-y',              default=0,     type=int,            help='Position for window to be.   (default: {})'.format(0))
-    parser.add_argument('-H',              default=540,   type=int,            help='Height for the window to be. (default: {})'.format(540))
-    parser.add_argument('-W',              default=960,   type=int,            help='Width for the window to be.  (default: {})'.format(960))
-    parser.add_argument('-d', '--default', default='/home/austin/default.mp4', help='Default video to play.       (default: {}'.format('/home/austin/default.mp4'))
+    parser.add_argument('-n', '--name',    default='/mediaPlayer',   help='Name for the module.         (default: {})'.format('/mediaPlayer'))
+    parser.add_argument('-x',              default=0,     type=int,  help='Position for window to be.   (default: {})'.format(0))
+    parser.add_argument('-y',              default=0,     type=int,  help='Position for window to be.   (default: {})'.format(0))
+    parser.add_argument('-H',              default=540,   type=int,  help='Height for the window to be. (default: {})'.format(540))
+    parser.add_argument('-W',              default=960,   type=int,  help='Width for the window to be.  (default: {})'.format(960))
+    parser.add_argument('-d', '--default', default=None,             help='Default video to play.       (default: {})'.format(None))
+    parser.add_argument('-g', '--goal',    default=None,             help='Goal image to send.          (default: {})'.format(None))
     args = parser.parse_args()
     return args
 
@@ -44,6 +45,7 @@ class mediaPlayer(object):
         # Get some args.
         self.name    = args.name
         self.default = args.default
+        self.goal    = args.goal
         self.xpos    = args.x
         self.ypos    = args.y
         self.height  = args.H
@@ -54,6 +56,12 @@ class mediaPlayer(object):
         # Open the audio and video streams.
         self.video = cv2.VideoCapture(self.default)
         self.fps = self.video.get(cv2.CAP_PROP_FPS)
+
+        if self.goal != None:
+            goal_img = cv2.imread(self.goal)
+            cv2.namedWindow('goal state')        # Create a named window
+            cv2.moveWindow('goal state', self.height//3, self.width)  # Move it to (40,30)
+            cv2.imshow('goal state', goal_img)
 
         # Init a flag for completion of current media.
         self.playing = True
@@ -110,6 +118,7 @@ class mediaPlayer(object):
 
                 if file == "none":
                     file = self.default
+                    if file == None: continue
 
                 # Load the file.
                 print("Loading file: {}".format(file))

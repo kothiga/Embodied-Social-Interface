@@ -206,6 +206,13 @@ bool EmbodiedSocialInterface::updateModule() {
     if (!_current_hint_sent && _media_port.getOutputCount() != 0) {
         
         std::string media_msg = _media_path + "/" + _machine.getStateHint("in") + ".mp4";
+
+        //-- Do something slightly different for expressions.
+        if (_machine.getCurrentState() == "icub-expression") { // (possibly remove this. see what can do with eye-brows)
+            media_msg = _media_path + "/" + _machine.getCurrentState() + "_";
+            media_msg += "in.mp4";
+        }
+        
         sendMessage(_media_port, media_msg);
         
         _current_hint_sent = true;
@@ -254,9 +261,9 @@ bool EmbodiedSocialInterface::updateModule() {
 
 
         //-- Format the move.
-        std::string move = "move " //+ game_hint;    // uncomment this for auto-solve.
-            + std::to_string(selected_from-1) + " " 
-            + std::to_string(selected_to-1);
+        std::string game_move = std::to_string(selected_from-1) + " " + std::to_string(selected_to-1);
+        std::string move = "move " + game_move;
+            //+ game_hint;    // uncomment this for auto-solve.
 
 
         //-- Get the current hash and dist incase this move 
@@ -296,6 +303,14 @@ bool EmbodiedSocialInterface::updateModule() {
 
         //-- Retract the hint back to the home state.
         std::string media_msg = _media_path + "/" + _machine.getStateHint("out") + ".mp4";
+        
+        //-- Do something slightly different for expressions.
+        if (_machine.getCurrentState() == "icub-expression") {
+            media_msg = _media_path + "/" + _machine.getCurrentState() + "_";
+            media_msg += (game_move == game_hint ? "correct" : "wrong");
+            media_msg += "out.mp4";
+        }
+        
         sendMessage(_media_port, media_msg);
         
         _current_hint_sent = false;
@@ -337,6 +352,10 @@ bool EmbodiedSocialInterface::updateModule() {
                 /*from       =*/ selected_from, // -1
                 /*to         =*/ selected_to    // -1
             );
+
+            //TODO:
+            // send celebration video?
+            // sendMessage(_media_port, media_path + "/complete.mp4");
 
             //-- Wait for a few seconds before beginning to wrap up.
             yarp::os::Time::delay(5.0);

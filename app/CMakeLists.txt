@@ -8,3 +8,5 @@ cmake_minimum_required(VERSION 3.12)
 # Add the various projects.
 add_subdirectory(clip_maker)
 add_subdirectory(embodied_social)
+add_subdirectory(simCartesianControl)
+add_subdirectory(simFaceExpressions)

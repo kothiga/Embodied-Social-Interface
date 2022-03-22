@@ -1,0 +1,80 @@
+<!-- ================================================================================
+* Copyright: (C) 2022, SIRRL Social and Intelligent Robotics Research Laboratory, 
+*     University of Waterloo, All rights reserved.
+* 
+* Authors: 
+*     Austin Kothig <austin.kothig@uwaterloo.ca>
+* 
+* CopyPolicy: Released under the terms of the MIT License. 
+*     See the accompanying LICENSE file for details.
+* ================================================================================ -->
+
+<application>
+
+    <!-- ==================== APP META ==================== -->
+
+    <name> Clip Maker </name>
+    <description> Interface for puppeting the simulated iCub_SIM. </description>
+    <version> 1.0 </version>
+    <authors>
+        <author email="austin.kothig@uwaterloo.ca">Austin Kothig</author>
+    </authors>
+
+
+    <!-- ==================== MAIN MODULES ==================== -->
+
+    <module>
+        <name> clipMaker </name>
+        <parameters> </parameters>
+        <node> localhost </node>
+    </module>
+
+    <module>
+        <name> iCub_SIM </name>
+        <parameters> </parameters>
+        <node> localhost </node>
+    </module>
+
+    <module>
+        <name> simplescreenrecorder </name>
+        <parameters> </parameters>
+        <node> localhost </node>
+    </module>
+
+
+    <!-- ======================= EXPRESSIONS ======================= -->
+
+    <module>
+        <name> simFaceExpressions </name>
+        <parameters> </parameters>
+        <node> localhost </node>
+    </module>
+
+    <module>
+        <name> emotionInterface </name>
+        <parameters> </parameters>
+        <node> localhost </node>
+    </module>
+    
+
+    <!-- ======================= CONNECTIONS ======================= -->
+
+    <connection>
+        <from> /face/image/out       </from>
+        <to>   /icubSim/texture/face </to>
+        <protocol> tcp </protocol>
+    </connection>
+
+	<connection>
+        <from> /emotion/out         </from>
+        <to>   /icubSim/face/raw/in </to>
+        <protocol> tcp </protocol>
+    </connection>
+
+    <connection>
+        <from> /clipMaker/expr:o </from>
+        <to>   /emotion/in       </to>
+        <protocol> tcp </protocol>
+    </connection>
+
+</application>

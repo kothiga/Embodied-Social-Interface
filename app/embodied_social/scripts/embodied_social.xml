@@ -37,7 +37,7 @@
 
     <module>
         <name> yarpMediaPlayer.py </name>
-        <parameters> </parameters>
+        <parameters> --default /home/austin/default.mp4 --goal /home/austin/goal.png </parameters>
         <node> localhost </node>
     </module>
 
@@ -51,10 +51,10 @@
 
     <module>
         <name>yarpview</name>
-        <parameters> --name /view/goal:i --minimal --x 0 --y 0 --h 420 --w 305 </parameters>
+        <parameters> --name /view/goal:i --minimal --x 0 --y 0 --h 540 --w 960 </parameters>
         <node>localhost</node>
     </module>
-
+    
 
     <!-- ======================= CONNECTIONS ======================= -->
 
