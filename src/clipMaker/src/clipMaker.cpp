@@ -46,6 +46,10 @@ bool ClipMaker::configure(yarp::os::ResourceFinder &rf) {
 
     //-- Init the gaze vars.
 
+
+    //-- Init the speech vars.
+    _spch_timer = rf.check("spch_timer", yarp::os::Value(3.0), "speech duration (double)").asFloat64();
+
     return true;
 }
 
@@ -103,7 +107,7 @@ bool ClipMaker::respond(const yarp::os::Bottle &cmd, yarp::os::Bottle &reply) {
 
         //-- Get the from and to for this behavior.
         int from = cmd.get(2).asInt32();
-        int to   = cmd.get(3).asInt32(); //TODO: what do if not int?
+        int to   = cmd.get(3).asInt32(); // if not an int, will return 0;
 
         bool result = runBehavior(behavior, from, to);
         reply.addString((result ? "ack" : "err"));
@@ -133,14 +137,12 @@ bool ClipMaker::runHome() {
     std::lock_guard<std::mutex> lg(lock);
 
     //-- Use the same bottle for everyone.
-    yarp::os::Bottle bot;
+    //yarp::os::Bottle bot;
     
 
 
     //-- Set to default expression.
-    bot.clear();
-    bot.addString("set all neu");
-    _expr_port.write(bot);
+    sendMessage(_expr_port, "set all neu");
 
     return true;
 }
@@ -148,13 +150,16 @@ bool ClipMaker::runHome() {
 
 bool ClipMaker::runBehavior(const std::string behavior, const int from, const int to) {
 
+    //-- Don't even process if the same.
+    if (from == to) return false;
+
     // blob|body|spch|gaze|expr
     if (behavior == "blob") {
         return true;
     } else if (behavior == "body") {
         return body(from, to);
     } else if (behavior == "spch") {
-        return true;
+        return speech();
     } else if (behavior == "gaze") {
         return gaze(from, to);
     } else if (behavior == "expr") {
@@ -170,6 +175,37 @@ bool ClipMaker::body(const int from, const int to) {
     //-- Ensure atomicity of communications.
     std::lock_guard<std::mutex> lg(lock);
 
+    bool left_used  = (from == 0 || to == 0);
+    bool mid_used   = (from == 1 || to == 1);
+    bool right_used = (from == 2 || to == 2);
+
+    int right_arm_peg, left_arm_peg;
+
+    if (left_used) {
+
+        //-- Right arm will point to left peg (0)
+        right_arm_peg = 0;
+
+        //-- If the right peg (2) was used, left arm points to right peg.
+        left_arm_peg = (right_used ? 2 : 1);
+
+    } else {
+
+        //-- If the left (0) is not used we have...
+        right_arm_peg = 1;
+        left_arm_peg  = 2;
+
+    }
+
+    //-- Right arm goes first when f:0 t:1, f:0 t:2, and f:1 t:2
+    bool right_arm_first = (from < to);
+
+
+
+
+
+
+
     return true;
 }
 
@@ -180,6 +216,73 @@ bool ClipMaker::expression(const int from, const int to) {
     std::lock_guard<std::mutex> lg(lock);
 
 
+    //-- Ensure we're starting at neutral.
+    sendMessage(_expr_port, "set all neu");
+
+    //-- Wait a short while before beginning.
+    yarp::os::Time::delay(1.0);
+
+    //-- Move the right eyebrow up and down equal to idx for from.
+    for (int i = 0; i < (from+1); ++i) {
+
+        //-- Eyebrow up.
+        sendMessage(_expr_port, "set reb sur");
+        sendMessage(_expr_port, "set mou neu"); // mouth can do strange things...
+
+        //-- Wait.
+        yarp::os::Time::delay(_expr_timer);
+
+        //-- Eyebrow down.
+        sendMessage(_expr_port, "set reb neu");
+        sendMessage(_expr_port, "set mou neu");
+
+        //-- Wait.
+        yarp::os::Time::delay(_expr_timer);
+
+    } // repeat.
+    
+    //-- Wait a little bit between hints.
+    yarp::os::Time::delay((1.0 - _expr_timer));
+
+    //-- Move the left eyebrow up and down equal to idx for to.
+    for (int i = 0; i < (to+1); ++i) {
+
+        //-- Eyebrow up.
+        sendMessage(_expr_port, "set leb sur");
+        sendMessage(_expr_port, "set mou neu"); 
+
+        //-- Wait.
+        yarp::os::Time::delay(_expr_timer);
+
+        //-- Eyebrow down.
+        sendMessage(_expr_port, "set leb neu");
+        sendMessage(_expr_port, "set mou neu");
+
+        //-- Wait.
+        yarp::os::Time::delay(_expr_timer);
+
+    } // repeat.
+
+    //-- Wait a bit of time then show "correct" and "incorrect" guess gestures.
+    yarp::os::Time::delay(3.0);
+
+    sendMessage(_expr_port, "set all neu");
+
+    yarp::os::Time::delay(3.0);
+
+    sendMessage(_expr_port, "set all hap");
+
+    yarp::os::Time::delay(3.0);
+
+    sendMessage(_expr_port, "set all neu");
+
+    yarp::os::Time::delay(3.0);
+
+    sendMessage(_expr_port, "set all shy");
+
+    yarp::os::Time::delay(3.0);
+
+    sendMessage(_expr_port, "set all neu");
 
     return true;
 }
@@ -189,6 +292,34 @@ bool ClipMaker::gaze(const int from, const int to) {
 
     //-- Ensure atomicity of communications.
     std::lock_guard<std::mutex> lg(lock);
+
+    return true;
+}
+
+
+bool ClipMaker::speech() {
+
+    //-- Ensure atomicity of communications.
+    std::lock_guard<std::mutex> lg(lock);
+
+
+    //-- Ensure we're starting at neutral.
+    sendMessage(_expr_port, "set all neu"); // reuse expr ports
+
+    //-- Wait a short while before beginning.
+    yarp::os::Time::delay(1.0);
+
+    //-- Move the mouth for the specified amount of time.
+    double start_time = yarp::os::Time::now();
+    while ((yarp::os::Time::now() - start_time) < _spch_timer) {
+
+        sendMessage(_expr_port, "set mou surp");
+        yarp::os::Time::delay(0.2);
+        sendMessage(_expr_port, "set mou neu");
+        yarp::os::Time::delay(0.2);
+
+    }
+
 
     return true;
 }
@@ -214,14 +345,21 @@ bool ClipMaker::gaze(const int from, const int to) {
 //}
 
 
-//void ClipMaker::sendMessage(yarp::os::Port& port, const std::string msg) {
-//    
-//    //-- Put my message in a modem.
-//    yarp::os::Bottle bot;
-//    bot.addString(msg);
-//
-//    //-- And throw it in the Cyber Sea.
-//    port.write(bot);
-//
-//    return;
-//}
+void ClipMaker::sendMessage(yarp::os::Port& port, const std::string msg) {
+    
+    //-- Make a bottle.
+    yarp::os::Bottle bot; bot.clear();
+
+    //-- Parse this string up into individual words.
+    std::istringstream ss(msg);
+
+    //-- Add each word to the bottle.
+    std::string word;
+    while (ss >> word)
+        bot.addString(word);
+
+    //-- Write it out on the port.
+    port.write(bot);
+
+    return;
+}

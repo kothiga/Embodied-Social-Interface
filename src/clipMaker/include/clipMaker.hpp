@@ -42,8 +42,20 @@ class ClipMaker : public yarp::os::RFModule {
     yarp::os::RpcServer _rpc;
     std::string _module_name;
 
+    //-- Body vars.
+    std::vector<double> _left_arm_home;
+    std::vector<double> _right_arm_home;
+    std::vector<double> _left_arm_mid_peg;
+    std::vector<double> _right_arm_mid_peg;
+    std::vector<double> _right_arm_left_peg;
+
+
+
     //-- Expression vars.
     double _expr_timer;
+
+    //-- Speech vars.
+    double _spch_timer;
 
 
     /* ============================================================================
@@ -124,6 +136,7 @@ class ClipMaker : public yarp::os::RFModule {
     bool body(const int from, const int to);
     bool expression(const int from, const int to);
     bool gaze(const int from, const int to);
+    bool speech();
 
 
     /* ============================================================================
@@ -135,7 +148,7 @@ class ClipMaker : public yarp::os::RFModule {
     /* ============================================================================
     **  
     ** ============================================================================ */
-    //void sendMessage(yarp::os::Port& port, const std::string msg);
+    void sendMessage(yarp::os::Port& port, const std::string msg);
 
 };
 
