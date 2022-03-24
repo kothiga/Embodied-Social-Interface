@@ -55,6 +55,14 @@
         <parameters> </parameters>
         <node> localhost </node>
     </module>
+
+    <!-- ======================= GAZE ======================= -->
+
+    <module>
+        <name> iKinGazeCtrl </name>
+        <parameters> --from configSim.ini </parameters>
+        <node> localhost </node>
+    </module>
     
 
     <!-- ======================= CONNECTIONS ======================= -->

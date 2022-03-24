@@ -32,6 +32,10 @@
 #include <yarp/os/RpcClient.h>
 #include <yarp/os/Time.h>
 
+#include <yarp/dev/ControlBoardInterfaces.h>
+#include <yarp/dev/GazeControl.h>
+#include <yarp/dev/PolyDriver.h>
+
 
 class ClipMaker : public yarp::os::RFModule {
 
@@ -41,18 +45,28 @@ class ClipMaker : public yarp::os::RFModule {
     ** ============================================================================ */
     yarp::os::RpcServer _rpc;
     std::string _module_name;
+    std::string _robot_name;
 
     //-- Body vars.
     std::vector<double> _left_arm_home;
     std::vector<double> _right_arm_home;
+    std::vector<double> _left_arm_right_peg;
     std::vector<double> _left_arm_mid_peg;
     std::vector<double> _right_arm_mid_peg;
     std::vector<double> _right_arm_left_peg;
-
-
+    std::size_t         _num_joints;
+    double              _body_speed;
 
     //-- Expression vars.
     double _expr_timer;
+
+    //-- Gaze vars.
+    std::vector<double> _gaze_home;
+    std::vector<double> _gaze_left;
+    std::vector<double> _gaze_mid;
+    std::vector<double> _gaze_right;
+
+    double _gaze_speed;
 
     //-- Speech vars.
     double _spch_timer;
@@ -61,9 +75,19 @@ class ClipMaker : public yarp::os::RFModule {
     /* ============================================================================
     **  Yarp ports for controlling behavior flow of interface.
     ** ============================================================================ */
-    yarp::os::Port _body_port;
+    yarp::dev::PolyDriver _left_arm, _right_arm;
+
+    yarp::dev::IPositionControl* _left_arm_pos;
+    yarp::dev::IPositionControl* _right_arm_pos;
+
+    yarp::dev::PolyDriver _gaze_client;
+    yarp::dev::IGazeControl* _gaze;
+    int _gaze_startup_context;
+
     yarp::os::Port _expr_port;
-    yarp::os::Port _gaze_port;
+
+    //yarp::os::Port _body_port;
+    //yarp::os::Port _gaze_port;
 
 
     /* ============================================================================
@@ -149,6 +173,12 @@ class ClipMaker : public yarp::os::RFModule {
     **  
     ** ============================================================================ */
     void sendMessage(yarp::os::Port& port, const std::string msg);
+
+
+    /* ============================================================================
+    **  
+    ** ============================================================================ */
+    bool loadBottleAsVec(yarp::os::Bottle* bot, std::vector<double>& vec);
 
 };
 
