@@ -57,6 +57,7 @@ class EmbodiedSocialInterface : public yarp::os::RFModule {
     int _max_tower_height;
     int _window_height;
     int _window_width;
+    int _right_shift;
 
 
     /* ============================================================================

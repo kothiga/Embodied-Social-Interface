@@ -78,9 +78,10 @@ bool EmbodiedSocialInterface::configure(yarp::os::ResourceFinder &rf) {
 
     //-- Set some interface appearance vars.
     _max_tower_height = rf.check("maxTower", yarp::os::Value(10), " (int)").asInt32();
-    _window_height    = rf.check("height",   yarp::os::Value(13), " (int)").asInt32(); // TODO: set via rf.
+    _window_height    = rf.check("height",   yarp::os::Value(13), " (int)").asInt32();
     _window_width     = rf.check("width",    yarp::os::Value(36), " (int)").asInt32();
-    
+    _right_shift      = rf.check("rshift",   yarp::os::Value(0),  " (int)").asInt32();
+
 
     //-- Set the URL to the end of game survey.
     _end_survey = rf.check("survey", yarp::os::Value("https://https://kothiga.github.io/"), "survey url (string)").asString();
@@ -206,12 +207,6 @@ bool EmbodiedSocialInterface::updateModule() {
     if (!_current_hint_sent && _media_port.getOutputCount() != 0) {
         
         std::string media_msg = _media_path + "/" + _machine.getStateHint("in") + ".mp4";
-
-        //-- Do something slightly different for expressions.
-        if (_machine.getCurrentState() == "icub-expression") { // (possibly remove this. see what can do with eye-brows)
-            media_msg = _media_path + "/" + _machine.getCurrentState() + "_";
-            media_msg += "in.mp4";
-        }
         
         sendMessage(_media_port, media_msg);
         
@@ -308,7 +303,7 @@ bool EmbodiedSocialInterface::updateModule() {
         if (_machine.getCurrentState() == "icub-expression") {
             media_msg = _media_path + "/" + _machine.getCurrentState() + "_";
             media_msg += (game_move == game_hint ? "correct" : "wrong");
-            media_msg += "out.mp4";
+            media_msg += "_out.mp4";
         }
         
         sendMessage(_media_port, media_msg);
@@ -321,6 +316,10 @@ bool EmbodiedSocialInterface::updateModule() {
         
         //-- Step the state machine.
         _machine.step();
+
+        //-- Allow a bit of time for the media port to read in
+        //-- the previous message before looping back around.
+        yarp::os::Time::delay(0.2);
 
         
         //-- Game complete, close module.
@@ -458,6 +457,9 @@ void EmbodiedSocialInterface::drawInterface() {
     //-- Reset and move the screen position.
     clear(); move(0,0);
 
+    //-- Right shift buffer.
+    std::string shift(_right_shift, ' ');
+
     //-- Init a buffer string to write to.
     std::string line_buffer;
 
@@ -476,16 +478,16 @@ void EmbodiedSocialInterface::drawInterface() {
 
     //-- Right Justified
     line_buffer = std::string(_window_width - line_buffer.length(), ' ')  + line_buffer + "\n\n";
-    addstr(line_buffer.c_str());
+    addstr((shift+line_buffer).c_str());
 
     //-- ROW SECTION 2: peg tops until disks.
     for (int count = 0; count < _max_tower_height - (showable_rows.size()-2); ++count) {
-        addstr(showable_rows[1].c_str());
+        addstr((shift+showable_rows[1]).c_str());
     }
 
     //-- ROW SECTION 3: disks until base.
     for (int idx = 2; idx < showable_rows.size()-1; ++idx) {
-        addstr(showable_rows[idx].c_str());
+        addstr((shift+showable_rows[idx]).c_str());
     }
 
     //-- ROW SECTION 4: disk selections.
@@ -493,15 +495,15 @@ void EmbodiedSocialInterface::drawInterface() {
         + "[1]" + std::string(8, ' ') 
         + "[2]" + std::string(8, ' ') 
         + "[3]" + "\n";
-    addstr(line_buffer.c_str());
+    addstr((shift+line_buffer).c_str());
 
     // This is embarrassing and sucks but formatting...
     std::vector<int> MAGIC_FORMAT {0, 5, 16, 27}; 
 
     //-- Clear the buffer.
-    line_buffer = std::string(MAGIC_FORMAT[0], ' ');
+    line_buffer = shift+std::string(MAGIC_FORMAT[0], ' ');
     if (selected_from != -1 && selected_to == -1) {
-        line_buffer += std::string(MAGIC_FORMAT[selected_from], ' ') + "^^^^^" + "\n" 
+        line_buffer += std::string(MAGIC_FORMAT[selected_from], ' ') + "^^^^^" + "\n" + shift
                      + std::string(MAGIC_FORMAT[selected_from], ' ') + "FROM " + "\n\n";
     } else if (selected_from != -1 && selected_to != -1) {
 
@@ -523,7 +525,7 @@ void EmbodiedSocialInterface::drawInterface() {
         } else {
             line_buffer += std::string(11, ' ');
         }
-        line_buffer += "\n";
+        line_buffer += "\n" + shift;
 
         //-- Fill peg 1 if selected as FROM or TO
         if (selected_from == 1) {
@@ -551,7 +553,7 @@ void EmbodiedSocialInterface::drawInterface() {
         } else {
             line_buffer += std::string(11, ' ');
         }
-        line_buffer += "\n";
+        line_buffer += "\n" + shift;
 
         std::string enter_buffer = "[ENTER]";
         line_buffer += std::string( (_window_width - enter_buffer.length() + 1)/2, ' ')  + enter_buffer + "\n";
@@ -587,7 +589,7 @@ void EmbodiedSocialInterface::drawWaiting() {
     }
     
     //-- Write an output message on the status.
-    std::string write_string = std::string(8, ' ') + "Waiting for connection to game server..." + waiting[_waiting_count % waiting_len] + "\n";
+    std::string write_string = std::string(4, ' ') + "Waiting for connection to game server..." + waiting[_waiting_count % waiting_len] + "\n";
     addstr(write_string.c_str());
     _waiting_count++;
 

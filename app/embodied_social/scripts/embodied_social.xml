@@ -24,8 +24,8 @@
     <!-- ==================== MAIN MODULES ==================== -->
 
     <module>
-        <name> gnome-terminal </name>                     <!-- (COLSxROWS+X+Y) -->
-        <parameters> --window-with-profile=PROFILENAME --geometry=80x24+200+200 -- embodiedSocialInterface </parameters>
+        <name> gnome-terminal </name>                     <!-- (COLSxROWS+X+Y)  geometry=80x24+200+200 -->
+        <parameters> --window-with-profile=embod --geometry=50x15+0+1200 -- embodiedSocialInterface </parameters>
         <node> localhost </node>
     </module>
 
@@ -37,7 +37,7 @@
 
     <module>
         <name> yarpMediaPlayer.py </name>
-        <parameters> --default /home/austin/default.mp4 --goal /home/austin/goal.png </parameters>
+        <parameters> --default /usr/local/src/robot/research/Embodied-Social-Interface/data/vids/icub-none.mp4 --goal /usr/local/src/robot/research/Embodied-Social-Interface/data/img/goal.png </parameters>
         <node> localhost </node>
     </module>
 
@@ -48,12 +48,6 @@
     </module>
 
     <!-- ======================= MONITORING ======================= -->
-
-    <module>
-        <name>yarpview</name>
-        <parameters> --name /view/goal:i --minimal --x 0 --y 0 --h 540 --w 960 </parameters>
-        <node>localhost</node>
-    </module>
     
 
     <!-- ======================= CONNECTIONS ======================= -->
