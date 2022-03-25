@@ -20,8 +20,9 @@ import argparse
 
 def getArgs():
     parser = argparse.ArgumentParser(description='yarpWebOpener')
-    parser.add_argument('-n', '--name', default='/webOpener',    help='Name for the module.                  (default: {})'.format('/webOpener'))
-    parser.add_argument('-r', '--rate', type=float, default=0.1, help='Check for new messages per r seconds. (default: {})'.format(1.0))
+    parser.add_argument('-n', '--name',   default='/webOpener',    help='Name for the module.                  (default: {})'.format('/webOpener'))
+    parser.add_argument('-r', '--rate',   type=float, default=0.1, help='Check for new messages per r seconds. (default: {})'.format(0.1))
+    parser.add_argument('-s', '--survey', default='https://forms.gle/mqUBCaR5a4PKdXbN7',    help='Survey link')
     args = parser.parse_args()
     return args
 
@@ -39,6 +40,7 @@ class webOpener(object):
         # Get some args.
         self.name = args.name
         self.rate = args.rate
+        self.link = args.survey
         
         self.url_buffer = []
 
@@ -61,8 +63,8 @@ class webOpener(object):
                 url = self.url_buffer[0]
                 self.url_buffer.pop(0)
 
-                print("Opening url: {}".format(url))
-                webbrowser.open_new(url)
+                print("Opening url: {}".format(self.link))
+                webbrowser.open_new(self.link)
 
             else:
                 time.sleep(self.rate)

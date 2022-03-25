@@ -256,7 +256,7 @@ bool EmbodiedSocialInterface::updateModule() {
 
         //-- If this move was too fast, don't let it go through.
         if ((yarp::os::Time::now() - _last_execution) < _time_between) {
-            std::cout << yarp::os::Time::now() - _last_execution << " no" << std::endl;
+            //std::cout << yarp::os::Time::now() - _last_execution << " no" << std::endl;
             return true;
         }
 
@@ -362,7 +362,7 @@ bool EmbodiedSocialInterface::updateModule() {
             sendMessage(_media_port, _media_path + "/celebrate.mp4");
 
             //-- Wait for a few seconds before beginning to wrap up.
-            yarp::os::Time::delay(5.0);
+            yarp::os::Time::delay(8.0);
             sendMessage(_web_port, _end_survey);
             yarp::os::Time::delay(5.0);
 

@@ -105,6 +105,7 @@ class mediaPlayer(object):
                     
                     # Allow breaking out?
                     if (key == 27 or key == 1048603) and self.break_outs:
+                        print("Broke out?")
                         self.cleanup()
                         exit(0)
                         break
