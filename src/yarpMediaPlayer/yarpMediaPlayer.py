@@ -61,11 +61,11 @@ class mediaPlayer(object):
         self.video = cv2.VideoCapture(self.default)
         self.fps = self.video.get(cv2.CAP_PROP_FPS)
 
-        #if self.goal != None:
-        #    goal_img = cv2.imread(self.goal)
-        #    cv2.namedWindow('goal state')        # Create a named window
-        #    cv2.moveWindow('goal state', self.height//3, self.width)  # Move it to (40,30)
-        #    cv2.imshow('goal state', goal_img)
+        if self.goal != None:
+            goal_img = cv2.imread(self.goal)
+            cv2.namedWindow('goal state')
+            cv2.moveWindow('goal state', self.height//3, self.width)
+            cv2.imshow('goal state', goal_img)
 
         # Init a flag for completion of current media.
         self.playing = True

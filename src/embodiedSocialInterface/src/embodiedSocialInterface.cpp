@@ -358,9 +358,8 @@ bool EmbodiedSocialInterface::updateModule() {
                 /*to         =*/ selected_to    // -1
             );
 
-            //TODO:
-            // send celebration video?
-            sendMessage(_media_port, _media_path + "/complete.mp4");
+            //-- Send a celebration video for completing the game.
+            sendMessage(_media_port, _media_path + "/celebrate.mp4");
 
             //-- Wait for a few seconds before beginning to wrap up.
             yarp::os::Time::delay(5.0);
