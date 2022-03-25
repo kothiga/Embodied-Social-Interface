@@ -64,8 +64,9 @@ class mediaPlayer(object):
         if self.goal != None:
             goal_img = cv2.imread(self.goal)
             cv2.namedWindow('goal state')
-            cv2.moveWindow('goal state', self.height//3, self.width)
             cv2.imshow('goal state', goal_img)
+            #cv2.moveWindow('goal state', self.height//3, self.width)
+            cv2.moveWindow('goal state', self.width, self.height//3)
 
         # Init a flag for completion of current media.
         self.playing = True
