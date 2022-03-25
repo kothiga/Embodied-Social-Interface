@@ -90,7 +90,7 @@ bool EmbodiedSocialInterface::configure(yarp::os::ResourceFinder &rf) {
 
 
     //-- Set the URL to the end of game survey.
-    _end_survey = rf.check("survey", yarp::os::Value("https://https://kothiga.github.io/"), "survey url (string)").asString();
+    _end_survey = rf.check("survey", yarp::os::Value("https://kothiga.github.io/"), "survey url (string)").asString();
 
 
     //-- Init the from and to as unselected.

@@ -25,7 +25,7 @@
 
     <module>
         <name> gnome-terminal </name>                     <!-- (COLSxROWS+X+Y)  geometry=80x24+200+200 -->
-        <parameters> --window-with-profile=embod --geometry=50x15+0+1200 -- embodiedSocialInterface </parameters>
+        <parameters> --window-with-profile=embod --geometry=50x15+0+1200 -- embodiedSocialInterface --user user00 </parameters>
         <node> localhost </node>
     </module>
 
