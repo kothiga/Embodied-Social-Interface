@@ -21,7 +21,7 @@ import argparse
 def getArgs():
     parser = argparse.ArgumentParser(description='yarpWebOpener')
     parser.add_argument('-n', '--name', default='/webOpener',    help='Name for the module.                  (default: {})'.format('/webOpener'))
-    parser.add_argument('-r', '--rate', type=float, default=1.0, help='Check for new messages per r seconds. (default: {})'.format(1.0))
+    parser.add_argument('-r', '--rate', type=float, default=0.1, help='Check for new messages per r seconds. (default: {})'.format(1.0))
     args = parser.parse_args()
     return args
 
@@ -55,7 +55,7 @@ class webOpener(object):
             
             self.checkPort()
 
-            if 0 < len(self.url_buffer):
+            if len(self.url_buffer):
 
                 # Get the url to open.
                 url = self.url_buffer[0]

@@ -52,6 +52,9 @@ class EmbodiedSocialInterface : public yarp::os::RFModule {
     std::string _media_path;
     std::string _end_survey;
 
+    int    _min_steps_per;
+    int    _max_steps_per;
+
     double _time_between;
 
     int _max_tower_height;

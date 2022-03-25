@@ -21,13 +21,15 @@ import argparse
 
 def getArgs():
     parser = argparse.ArgumentParser(description='yarpMediaPlayer')
-    parser.add_argument('-n', '--name',    default='/mediaPlayer',   help='Name for the module.         (default: {})'.format('/mediaPlayer'))
-    parser.add_argument('-x',              default=0,     type=int,  help='Position for window to be.   (default: {})'.format(0))
-    parser.add_argument('-y',              default=0,     type=int,  help='Position for window to be.   (default: {})'.format(0))
-    parser.add_argument('-H',              default=540,   type=int,  help='Height for the window to be. (default: {})'.format(540))
-    parser.add_argument('-W',              default=960,   type=int,  help='Width for the window to be.  (default: {})'.format(960))
-    parser.add_argument('-d', '--default', default=None,             help='Default video to play.       (default: {})'.format(None))
-    parser.add_argument('-g', '--goal',    default=None,             help='Goal image to send.          (default: {})'.format(None))
+    parser.add_argument('-n', '--name',    default='/mediaPlayer',     help='Name for the module.          (default: {})'.format('/mediaPlayer'))
+    parser.add_argument('-x',              default=0,     type=int,    help='Position for window to be.    (default: {})'.format(0))
+    parser.add_argument('-y',              default=0,     type=int,    help='Position for window to be.    (default: {})'.format(0))
+    parser.add_argument('-H',              default=540,   type=int,    help='Height for the window to be.  (default: {})'.format(540))
+    parser.add_argument('-W',              default=960,   type=int,    help='Width for the window to be.   (default: {})'.format(960))
+    parser.add_argument('-d', '--default', default=None,               help='Default video to play.        (default: {})'.format(None))
+    parser.add_argument('-g', '--goal',    default=None,               help='Goal image to send.           (default: {})'.format(None))
+    parser.add_argument('-s', '--speed',   default=10.,   type=float,  help='Speed mutl when jobs todo.    (default: {})'.format(10.))
+    parser.add_argument('-b', '--breako',  default=False,              help='Allow ESC and Q to break out? (default: {})'.format(False))
     args = parser.parse_args()
     return args
 
@@ -43,13 +45,15 @@ class mediaPlayer(object):
     def __init__(self, args):
 
         # Get some args.
-        self.name    = args.name
-        self.default = args.default
-        self.goal    = args.goal
-        self.xpos    = args.x
-        self.ypos    = args.y
-        self.height  = args.H
-        self.width   = args.W
+        self.name       = args.name
+        self.default    = args.default
+        self.goal       = args.goal
+        self.speedup    = args.speed
+        self.break_outs = args.breako
+        self.xpos       = args.x
+        self.ypos       = args.y
+        self.height     = args.H
+        self.width      = args.W
         
         self.file_buffer = []
 
@@ -91,8 +95,15 @@ class mediaPlayer(object):
                         self.video.release()
                         break
                     
-                    key = cv2.waitKey(int(1000 / self.fps))
-                    if key == 27 or key == 1048603:
+                    # Wait based on the frames-per-second of the video,
+                    # but if we have multiple videos in the queue, speed
+                    # things up so that we're not waiting too for the
+                    # most recent video clips.
+                    wait_for = int((1000 / self.fps) / (self.speedup if len(self.file_buffer) > 1 else 1.))
+                    key = cv2.waitKey(wait_for)
+                    
+                    # Allow breaking out?
+                    if (key == 27 or key == 1048603) and self.break_outs:
                         self.cleanup()
                         exit(0)
                         break
@@ -110,7 +121,8 @@ class mediaPlayer(object):
                     self.checkPort()
 
 
-            elif 0 < len(self.file_buffer):
+            # If there is something in the beffer, load it.
+            elif len(self.file_buffer):
 
                 # Get the file at the front.
                 file = self.file_buffer[0]
@@ -131,6 +143,8 @@ class mediaPlayer(object):
                     self.fps = self.video.get(cv2.CAP_PROP_FPS)
                     self.playing = True
 
+
+            # Else wait for some input.
             else:
                 print("Waiting for video . . .")
                 time.sleep(0.1)

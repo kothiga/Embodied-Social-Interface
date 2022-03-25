@@ -70,10 +70,16 @@ bool EmbodiedSocialInterface::configure(yarp::os::ResourceFinder &rf) {
         _machine.addState("none");
     }
 
+    //-- Set the min/max number of steps.
+    _min_steps_per = rf.check("minSteps", yarp::os::Value(5), "min steps (int)").asInt32();
+    _max_steps_per = rf.check("maxSteps", yarp::os::Value(5), "max steps (int)").asInt32();
+
+    _machine.setMinSteps(_min_steps_per);
+    _machine.setMaxSteps(_max_steps_per);
+
 
     //-- Set the time to wait between allowing moves to pass
     _time_between = rf.check("seconds", yarp::os::Value(5.0), " (double)").asFloat64();
-    std::cout << "time: " << _time_between << std::endl;
 
 
     //-- Set some interface appearance vars.
@@ -354,11 +360,12 @@ bool EmbodiedSocialInterface::updateModule() {
 
             //TODO:
             // send celebration video?
-            // sendMessage(_media_port, media_path + "/complete.mp4");
+            sendMessage(_media_port, _media_path + "/complete.mp4");
 
             //-- Wait for a few seconds before beginning to wrap up.
             yarp::os::Time::delay(5.0);
             sendMessage(_web_port, _end_survey);
+            yarp::os::Time::delay(5.0);
 
 
             //-- Tell the game to close.
