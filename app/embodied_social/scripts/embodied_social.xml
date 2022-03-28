@@ -36,16 +36,18 @@
     </module>
 
     <module>
+        <name> yarpWebOpener.py </name>
+        <parameters> </parameters>
+        <node> localhost </node>
+    </module>
+
+    <module>
         <name> yarpMediaPlayer.py </name>
         <parameters> --default /usr/local/src/robot/research/Embodied-Social-Interface/data/vids/icub-none.mp4 --goal /usr/local/src/robot/research/Embodied-Social-Interface/data/img/goal.png </parameters>
         <node> localhost </node>
     </module>
 
-    <module>
-        <name> yarpWebOpener.py </name>
-        <parameters> </parameters>
-        <node> localhost </node>
-    </module>
+    
 
     <!-- ======================= MONITORING ======================= -->
     
